@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FX Quantum Pro Terminal • Institutional Multi-Timeframe & SMC Intelligence</title>
+  <meta name="description" content="Institutional Forex market terminal featuring TradingView live charts, Smart Money Concepts (SMC), FVG/OB detection, and multi-timeframe quantitative trade execution.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="header">
+    <div class="logo-group">
+      <div class="logo-badge">⚡</div>
+      <div>
+        <h1 class="logo-title">FX QUANTUM</h1>
+      </div>
+      <span class="logo-version">PRO V4.0</span>
+    </div>
+
+    <!-- Live Market Session Clocks -->
+    <div class="session-clocks">
+      <div class="clock-item" id="session-sydney"><span class="clock-dot"></span> Sydney</div>
+      <div class="clock-item" id="session-tokyo"><span class="clock-dot"></span> Tokyo</div>
+      <div class="clock-item active" id="session-london"><span class="clock-dot"></span> London</div>
+      <div class="clock-item active" id="session-newyork"><span class="clock-dot"></span> New York</div>
+    </div>
+
+    <!-- Active Pair Hero Stat -->
+    <div class="header-hero-stat">
+      <div class="live-price-pill">
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;" id="hero-pair-symbol">EUR/USD</span>
+        <span class="live-price-val bull-text" id="current-price">1.08450</span>
+        <span class="live-price-delta bull-text" id="price-change">+0.42% (+45p)</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="header-actions">
+      <button class="btn-modern btn-highlight" id="btn-open-dossier">📄 Pre-Trade Ticket</button>
+      <button class="btn-modern active" id="audio-toggle">🔊 Audio: ON</button>
+      <button class="btn-modern" id="autotrade-toggle">⚡ Auto-Sim: OFF</button>
+      <button class="btn-modern btn-primary-action" id="btn-execute-signal">Execute Order</button>
+    </div>
+  </header>
+
+  <!-- Multi-Timeframe Alignment & Optimal Entry Recommendation Strip -->
+  <div class="mtf-strip">
+    <div class="mtf-left">
+      <span class="mtf-tag">🎯 OPTIMAL ENTRY WINDOW:</span>
+      <span class="mtf-pill-badge" id="mtf-rec-tf">15M SCALP</span>
+      <span class="mtf-action-pill badge-bull" id="mtf-rec-action">BUY (HIGH CONFLUENCE)</span>
+    </div>
+    
+    <div class="mtf-segmented-matrix" id="mtf-matrix-container">
+      <div class="mtf-seg-item" data-tf="1m"><span class="mtf-dot bull"></span> 1M <strong class="bull-text">BUY</strong></div>
+      <div class="mtf-seg-item" data-tf="5m"><span class="mtf-dot bull"></span> 5M <strong class="bull-text">BUY</strong></div>
+      <div class="mtf-seg-item active" data-tf="15m"><span class="mtf-dot bull"></span> 15M <strong class="bull-text">BUY</strong></div>
+      <div class="mtf-seg-item" data-tf="1h"><span class="mtf-dot"></span> 1H <strong class="neutral-text">HOLD</strong></div>
+      <div class="mtf-seg-item" data-tf="4h"><span class="mtf-dot bull"></span> 4H <strong class="bull-text">BUY</strong></div>
+      <div class="mtf-seg-item" data-tf="1d"><span class="mtf-dot bull"></span> 1D <strong class="bull-text">BUY</strong></div>
+    </div>
+  </div>
+
+  <!-- Main 3-Column Layout -->
+  <main class="main-grid">
+    
+    <!-- Left Sidebar: Pair Watchlist -->
+    <aside class="sidebar-panel">
+      <div class="sidebar-header">
+        <span class="sidebar-heading">Watchlist</span>
+        <div class="filter-pills">
+          <button class="f-pill active" data-filter="all">ALL</button>
+          <button class="f-pill" data-filter="majors">MAJORS</button>
+          <button class="f-pill" data-filter="crosses">CROSS</button>
+        </div>
+      </div>
+      <div class="watchlist-scroll" id="watchlist-container">
+        <!-- Watchlist loaded dynamically -->
+      </div>
+    </aside>
+
+    <!-- Center: Interactive Financial Chart Viewport -->
+    <section class="center-viewport">
+      
+      <!-- Chart Toolbar -->
+      <div class="chart-menu-bar">
+        <div class="tf-cluster">
+          <button class="tf-item" data-tf="1m" data-tv="1">1m</button>
+          <button class="tf-item" data-tf="5m" data-tv="5">5m</button>
+          <button class="tf-item active" data-tf="15m" data-tv="15">15m</button>
+          <button class="tf-item" data-tf="1h" data-tv="60">1h</button>
+          <button class="tf-item" data-tf="4h" data-tv="240">4h</button>
+          <button class="tf-item" data-tf="1d" data-tv="D">1D</button>
+        </div>
+
+        <div class="view-segmented-switch">
+          <button class="view-mode-item active" id="btn-mode-tv">📈 TradingView Live</button>
+          <button class="view-mode-item" id="btn-mode-algo">🎯 Algo Overlays</button>
+        </div>
+
+        <div class="overlay-toggles-cluster" id="algo-overlay-controls" style="display: none;">
+          <label class="overlay-chip">
+            <input type="checkbox" class="overlay-toggle" data-overlay="smc" checked>
+            <span style="color: var(--bull-primary);">SMC (OB/FVG)</span>
+          </label>
+          <label class="overlay-chip">
+            <input type="checkbox" class="overlay-toggle" data-overlay="ema9" checked>
+            <span style="color: var(--cyan-primary);">EMA 9</span>
+          </label>
+          <label class="overlay-chip">
+            <input type="checkbox" class="overlay-toggle" data-overlay="ema21" checked>
+            <span style="color: var(--gold-primary);">EMA 21</span>
+          </label>
+          <label class="overlay-chip">
+            <input type="checkbox" class="overlay-toggle" data-overlay="bollinger">
+            <span>Bollinger</span>
+          </label>
+          <label class="overlay-chip">
+            <input type="checkbox" class="overlay-toggle" data-overlay="patterns" checked>
+            <span>Patterns</span>
+          </label>
+          <label class="overlay-chip">
+            <input type="checkbox" class="overlay-toggle" data-overlay="signals" checked>
+            <span>Targets</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Chart Display Viewport -->
+      <div class="chart-display-frame">
+        <div id="tradingview_chart" style="width: 100%; height: 100%;"></div>
+        <div id="chart-container" style="display: none; width: 100%; height: 100%;"></div>
+      </div>
+
+      <!-- Bottom Performance & Execution Dock -->
+      <div class="bottom-dock">
+        <div class="dock-header">
+          <span class="dock-title">Execution Log & Risk Performance</span>
+          <div class="dock-metrics">
+            <span>Win Rate: <strong class="metric-highlight bull-text" id="stat-winrate">0.0%</strong></span>
+            <span>Net Gain: <strong class="metric-highlight bull-text" id="stat-pips">+0 p</strong></span>
+            <span>Total Executed: <strong class="metric-highlight" id="stat-trades">0</strong></span>
+          </div>
+        </div>
+        <div class="dock-table-scroll">
+          <table class="terminal-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Instrument</th>
+                <th>Side</th>
+                <th>Entry Price</th>
+                <th>Status</th>
+                <th>Pips Delta</th>
+                <th>Trigger Time</th>
+              </tr>
+            </thead>
+            <tbody id="trade-history-body">
+              <tr>
+                <td colspan="7" class="text-center" style="text-align: center; color: var(--text-muted); padding: 14px;">
+                  No active virtual trades. Click "Execute Order" or toggle Auto-Execution to begin.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Intelligence & Execution Panel -->
+    <aside class="intel-sidebar">
+      
+      <!-- Primary Signal Execution Card -->
+      <div class="card-panel">
+        
+        <!-- Large Direction Hero -->
+        <div class="signal-hero-banner bull-theme" id="direction-banner">
+          <div class="hero-subtitle" id="dir-type-text">INSTITUTIONAL SETUP</div>
+          <div class="hero-title" id="dir-action-text">🟢 BUY ORDER</div>
+        </div>
+
+        <div class="sig-card-header">
+          <div>
+            <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Composite Decision</div>
+            <div class="bull-text" style="font-size: 15px; font-weight: 800;" id="signal-decision">STRONG BUY</div>
+          </div>
+          <span class="conf-pill pill-bull" id="signal-badge">94% CONFLUENCE</span>
+        </div>
+
+        <div class="conf-progress-track">
+          <div class="conf-progress-fill" id="confidence-bar" style="width: 94%; background: linear-gradient(90deg, #00f59b, #00d2ff);"></div>
+        </div>
+
+        <!-- Target Ladder -->
+        <div class="target-ladder-grid">
+          <div class="target-tile">
+            <span class="tile-label">Trigger Entry</span>
+            <div class="tile-value" id="sig-entry">1.08450</div>
+          </div>
+          <div class="target-tile">
+            <span class="tile-label">Risk:Reward</span>
+            <div class="tile-value bull-text" id="sig-rrr">1 : 2.5</div>
+          </div>
+          <div class="target-tile">
+            <span class="tile-label">Target 1 (Primary)</span>
+            <div class="tile-value bull-text" id="sig-tp1">1.08720 (+27p)</div>
+          </div>
+          <div class="target-tile">
+            <span class="tile-label">Target 2 (Runner)</span>
+            <div class="tile-value bull-text" id="sig-tp2">1.08950 (+50p)</div>
+          </div>
+          <div class="target-tile" style="grid-column: span 2;">
+            <span class="tile-label">Invalidation Stop Loss (ATR / OB)</span>
+            <div class="tile-value bear-text" id="sig-sl">1.08330 (-12p)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multi-Tab Intelligence Card -->
+      <div class="card-panel">
+        <div class="tabbed-card-tabs">
+          <button class="intel-tab-btn active" data-tab="confirmations">Confirmations (<span id="confirmations-count">5/6</span>)</button>
+          <button class="intel-tab-btn" data-tab="smc">SMC Footprint</button>
+          <button class="intel-tab-btn" data-tab="patterns">Price Action</button>
+        </div>
+
+        <!-- Tab 1: Confirmations -->
+        <div class="tab-pane active" id="pane-confirmations">
+          <div class="reasons-scroll" id="confirmations-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 2: SMC Footprint -->
+        <div class="tab-pane" id="pane-smc" style="display: none;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="target-tile">
+              <span class="tile-label">Active Order Blocks</span>
+              <div class="tile-value" id="smc-ob-count">2 Active</div>
+            </div>
+            <div class="target-tile">
+              <span class="tile-label">Unfilled Fair Value Gaps</span>
+              <div class="tile-value" id="smc-fvg-count">1 Unfilled</div>
+            </div>
+            <div class="target-tile">
+              <span class="tile-label">Equilibrium Valuation</span>
+              <div class="tile-value bull-text" id="smc-eq-zone">Discount Range</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Patterns -->
+        <div class="tab-pane" id="pane-patterns" style="display: none;">
+          <div class="reasons-scroll" id="patterns-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Pre-Trade Institutional Analysis Dossier Modal -->
+  <div class="modal-backdrop" id="dossier-modal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-top">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;">📋</span>
+          <div>
+            <h2 class="modal-heading">PRE-TRADE INSTITUTIONAL DOSSIER</h2>
+            <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);" id="dossier-pair-tf">EUR/USD • 15M TIMEFRAME</div>
+          </div>
+        </div>
+        <button class="modal-close" id="btn-close-dossier">&times;</button>
+      </div>
+
+      <div class="modal-content-area">
+        
+        <div class="dossier-card">
+          <div class="dossier-card-title">🏛️ Executive Trade Thesis</div>
+          <p class="dossier-thesis-body" id="dossier-thesis">Loading trade thesis...</p>
+        </div>
+
+        <div class="dossier-card">
+          <div class="dossier-card-title">⚡ Order Execution Specifications</div>
+          <div class="dossier-spec-grid">
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Action Type</span>
+              <strong class="d-spec-val bull-text" id="d-action">BUY (MARKET / LIMIT)</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Entry Timeframe</span>
+              <strong class="d-spec-val" id="d-tf">15-MINUTE SCALP</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Trigger Entry</span>
+              <strong class="d-spec-val" id="d-entry">1.08450</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Invalidation SL</span>
+              <strong class="d-spec-val bear-text" id="d-sl">1.08330 (-12 pips)</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Target 1 (Primary)</span>
+              <strong class="d-spec-val bull-text" id="d-tp1">1.08720 (+27 pips)</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Target 2 (Runner)</span>
+              <strong class="d-spec-val bull-text" id="d-tp2">1.08950 (+50 pips)</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Risk:Reward</span>
+              <strong class="d-spec-val bull-text" id="d-rrr">1 : 2.5</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Position Risk Size</span>
+              <strong class="d-spec-val" id="d-risk">1.0% - 1.5% Equity</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="dossier-card">
+          <div class="dossier-card-title">🔍 Confluence Verification Points</div>
+          <div class="reasons-scroll" id="dossier-confirmations-list"></div>
+        </div>
+
+        <div class="dossier-card" style="border-left: 3px solid var(--bear-primary); background: rgba(255, 59, 105, 0.04);">
+          <div style="font-weight: 700; color: var(--bear-primary); font-size: 11px; margin-bottom: 4px;">⚠️ Invalidation Rules & Risk Disclaimer</div>
+          <div style="font-size: 10px; color: var(--text-muted); line-height: 1.4;" id="dossier-invalidation-text">
+            If price closes beyond the invalidation level before fill, the setup is considered fully negated. Maintain disciplined position sizing.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-bottom">
+        <button class="btn-modern" id="btn-modal-cancel">Close</button>
+        <button class="btn-modern btn-primary-action" id="btn-modal-confirm-trade">Execute / Simulate Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/indicators.js"></script>
+  <script src="js/patterns.js"></script>
+  <script src="js/smc.js"></script>
+  <script src="js/signals.js"></script>
+  <script src="js/multiTimeframe.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "forex-trend-intelligence-hub",
+  "version": "1.0.0",
+  "description": "Professional Forex Market Trend & Technical Analysis Trading Intelligence Terminal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  },
+  "keywords": [
+    "forex",
+    "trading",
+    "technical-analysis",
+    "candlestick-patterns",
+    "trading-signals",
+    "market-trends"
+  ],
+  "author": "Autonomous Engineering Team",
+  "license": "MIT"
+}

@@ -17,7 +17,8 @@ class ForexChart {
       bollinger: true,
       patterns: true,
       signals: true,
-      smc: true
+      smc: true,
+      liquidity: true
     };
 
     this.pipDecimal = 4;
@@ -266,6 +267,67 @@ class ForexChart {
       }
     }
 
+    // 2b. Draw Liquidity Sweeps & Equal Highs/Lows Pools
+    if (this.overlays.liquidity && this.smcData) {
+      // Draw Liquidity Sweeps (BSL / SSL Turtle Soups)
+      if (this.smcData.liquiditySweeps) {
+        this.smcData.liquiditySweeps.forEach(sw => {
+          const visIdx = sw.index - startIndex;
+          if (visIdx >= 0 && visIdx < visibleData.length) {
+            const x = getX(visIdx);
+            const y = getY(sw.sweepPrice);
+            const isBull = sw.direction === 'BULLISH';
+
+            ctx.strokeStyle = isBull ? '#00f59b' : '#ff3b69';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(x - 20, y);
+            ctx.lineTo(x + 20, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Sweep Badge
+            ctx.fillStyle = isBull ? 'rgba(0, 245, 155, 0.2)' : 'rgba(255, 59, 105, 0.2)';
+            ctx.strokeStyle = isBull ? '#00f59b' : '#ff3b69';
+            ctx.fillRect(x - 30, isBull ? y + 8 : y - 20, 60, 14);
+            ctx.strokeRect(x - 30, isBull ? y + 8 : y - 20, 60, 14);
+
+            ctx.fillStyle = isBull ? '#00f59b' : '#ff3b69';
+            ctx.font = 'bold 8px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(isBull ? 'SSL SWEEP' : 'BSL SWEEP', x, isBull ? y + 18 : y - 10);
+            ctx.textAlign = 'left';
+          }
+        });
+      }
+
+      // Draw Equal Highs (EQH) & Equal Lows (EQL) Pools
+      if (this.smcData.liquidityPools) {
+        this.smcData.liquidityPools.forEach(lp => {
+          const visIdx = lp.endIndex - startIndex;
+          if (visIdx >= 0) {
+            const x = Math.max(0, getX(visIdx));
+            const y = getY(lp.price);
+            const isEQH = lp.type === 'EQH';
+
+            ctx.strokeStyle = isEQH ? 'rgba(255, 209, 102, 0.6)' : 'rgba(0, 210, 255, 0.6)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(chartWidth, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = isEQH ? '#ffd166' : '#00d2ff';
+            ctx.font = 'bold 8px JetBrains Mono, monospace';
+            ctx.fillText(isEQH ? '$$$ EQH (BSL POOL)' : '$$$ EQL (SSL POOL)', chartWidth - 100, y - 4);
+          }
+        });
+      }
+    }
+
     // 3. Draw Technical Overlays (Bollinger Bands & EMAs)
     if (this.overlays.bollinger) {
       const bb = Indicators.calculateBollingerBands(this.candles, 20, 2);
@@ -373,13 +435,35 @@ class ForexChart {
       ctx.fillRect(x - barWidth / 2, bodyTop, barWidth, bodyHeight);
     });
 
-    // 6. Draw Active Signal Targets (Entry, TP1, TP2, SL)
+    // 6. Draw Active Signal Targets (Entry, TP1, TP2, TP3, SL) & Risk/Reward Box
     if (this.overlays.signals && this.activeSignal && this.activeSignal.action !== 'HOLD') {
       const sig = this.activeSignal;
-      this.drawTargetLine(ctx, chartWidth, getY(sig.entryPrice), `#ffd166`, `ENTRY ${sig.entryPrice.toFixed(this.pipDecimal)}`);
-      this.drawTargetLine(ctx, chartWidth, getY(sig.tp1Price), `#00f59b`, `TP1 (+${sig.tp1Pips}p)`);
-      this.drawTargetLine(ctx, chartWidth, getY(sig.tp2Price), `#00f59b`, `TP2 (+${sig.tp2Pips}p)`);
-      this.drawTargetLine(ctx, chartWidth, getY(sig.stopLossPrice), `#ff3b69`, `SL (-${sig.stopLossPips}p)`);
+      const entryY = getY(sig.entryPrice);
+      const slY = getY(sig.stopLossPrice);
+      const tp1Y = getY(sig.tp1Price);
+      const tp2Y = getY(sig.tp2Price);
+      const tp3Y = sig.tp3Price ? getY(sig.tp3Price) : null;
+
+      // Draw Reward / Risk Target Zones
+      const isBuy = sig.action === 'BUY';
+      const profitZoneHeight = Math.abs((tp2Y || tp1Y) - entryY);
+      const riskZoneHeight = Math.abs(slY - entryY);
+
+      // Profit Green Zone
+      ctx.fillStyle = 'rgba(0, 245, 155, 0.05)';
+      ctx.fillRect(0, Math.min(entryY, tp2Y || tp1Y), chartWidth, profitZoneHeight);
+
+      // Risk Red Zone
+      ctx.fillStyle = 'rgba(255, 59, 105, 0.05)';
+      ctx.fillRect(0, Math.min(entryY, slY), chartWidth, riskZoneHeight);
+
+      this.drawTargetLine(ctx, chartWidth, entryY, `#ffd166`, `ENTRY ${sig.entryPrice.toFixed(this.pipDecimal)}`);
+      this.drawTargetLine(ctx, chartWidth, tp1Y, `#00f59b`, `TP1 (+${sig.tp1Pips}p)`);
+      this.drawTargetLine(ctx, chartWidth, tp2Y, `#00f59b`, `TP2 (+${sig.tp2Pips}p)`);
+      if (tp3Y !== null && sig.tp3Pips) {
+        this.drawTargetLine(ctx, chartWidth, tp3Y, `#00d2ff`, `TP3 (+${sig.tp3Pips}p Runner)`);
+      }
+      this.drawTargetLine(ctx, chartWidth, slY, `#ff3b69`, `SL (-${sig.stopLossPips}p)`);
     }
 
     // 7. Draw Candlestick Pattern Badges

@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const entryPriceEl = document.getElementById('sig-entry');
   const tp1PriceEl = document.getElementById('sig-tp1');
   const tp2PriceEl = document.getElementById('sig-tp2');
+  const tp3PriceEl = document.getElementById('sig-tp3');
+  const lotsEl = document.getElementById('sig-lots');
   const slPriceEl = document.getElementById('sig-sl');
   const rrrEl = document.getElementById('sig-rrr');
   const confirmationsCountEl = document.getElementById('confirmations-count');
@@ -99,6 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const dSlEl = document.getElementById('d-sl');
   const dTp1El = document.getElementById('d-tp1');
   const dTp2El = document.getElementById('d-tp2');
+  const dTp3El = document.getElementById('d-tp3');
+  const dLotsEl = document.getElementById('d-lots');
   const dRrrEl = document.getElementById('d-rrr');
   const dRiskEl = document.getElementById('d-risk');
   const dossierConfirmationsListEl = document.getElementById('dossier-confirmations-list');
@@ -386,7 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!state.mtfScanResult) return;
     const { recommendation, timeframeResults } = state.mtfScanResult;
 
-    mtfRecTfEl.textContent = `${recommendation.optimalTimeframe.toUpperCase()} (${recommendation.compositeScore}% CONFLUENCE)`;
+    const alignText = recommendation.alignmentScore ? ` • ${recommendation.alignmentScore}% ALIGNMENT` : '';
+    mtfRecTfEl.textContent = `${recommendation.optimalTimeframe.toUpperCase()} (${recommendation.compositeScore}% CONFLUENCE${alignText})`;
     mtfRecActionEl.textContent = `${recommendation.optimalAction} (${recommendation.macroTrend} MACRO)`;
     mtfRecActionEl.className = `mtf-action-pill ${recommendation.optimalAction === 'BUY' ? 'badge-bull' : recommendation.optimalAction === 'SELL' ? 'badge-bear' : 'badge-neutral'}`;
 
@@ -441,6 +446,12 @@ document.addEventListener('DOMContentLoaded', () => {
     entryPriceEl.textContent = sig.entryPrice.toFixed(pipDec);
     tp1PriceEl.textContent = `${sig.tp1Price.toFixed(pipDec)} (+${sig.tp1Pips}p)`;
     tp2PriceEl.textContent = `${sig.tp2Price.toFixed(pipDec)} (+${sig.tp2Pips}p)`;
+    if (tp3PriceEl && sig.tp3Price) {
+      tp3PriceEl.textContent = `${sig.tp3Price.toFixed(pipDec)} (+${sig.tp3Pips}p)`;
+    }
+    if (lotsEl && sig.recommendedLots) {
+      lotsEl.textContent = `${sig.recommendedLots} Lots ($100 Risk)`;
+    }
     slPriceEl.textContent = `${sig.stopLossPrice.toFixed(pipDec)} (-${sig.stopLossPips}p)`;
     rrrEl.textContent = sig.rrr;
   }
@@ -449,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sig = state.activeSignal;
     if (!sig || !sig.confirmations) return;
 
-    confirmationsCountEl.textContent = `${sig.confirmedCount}/6`;
+    confirmationsCountEl.textContent = `${sig.confirmedCount}/${sig.confirmations.length}`;
 
     confirmationsListEl.innerHTML = '';
     sig.confirmations.forEach(c => {
@@ -477,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!state.smcData) return;
     const smc = state.smcData;
     smcObCountEl.textContent = `${smc.activeOBs.length} Active (${smc.activeOBs.filter(o => o.type === 'BULLISH_OB').length} Demand / ${smc.activeOBs.filter(o => o.type === 'BEARISH_OB').length} Supply)`;
-    smcFvgCountEl.textContent = `${smc.activeFVGs.length} Unfilled Gaps`;
+    smcFvgCountEl.textContent = `${smc.activeFVGs.length} Unfilled Gaps (${smc.liquiditySweeps ? smc.liquiditySweeps.length : 0} Sweeps / ${smc.liquidityPools ? smc.liquidityPools.length : 0} Pools)`;
     if (smc.equilibrium) {
       smcEqZoneEl.textContent = `${smc.equilibrium.zone.split(' ')[0]} (${smc.equilibrium.discountPercent}%)`;
       smcEqZoneEl.className = `tile-value ${smc.equilibrium.zone.includes('DISCOUNT') ? 'bull-text' : 'bear-text'}`;
@@ -539,6 +550,12 @@ document.addEventListener('DOMContentLoaded', () => {
     dSlEl.textContent = `${d.stopLossPrice.toFixed(pipDec)} (-${d.stopLossPips} pips)`;
     dTp1El.textContent = `${d.tp1Price.toFixed(pipDec)} (+${d.tp1Pips} pips)`;
     dTp2El.textContent = `${d.tp2Price.toFixed(pipDec)} (+${d.tp2Pips} pips)`;
+    if (dTp3El && d.tp3Price) {
+      dTp3El.textContent = `${d.tp3Price.toFixed(pipDec)} (+${d.tp3Pips} pips)`;
+    }
+    if (dLotsEl && d.recommendedLots) {
+      dLotsEl.textContent = `${d.recommendedLots} Lots ($100 Risk)`;
+    }
     dRrrEl.textContent = d.rrr;
     dRiskEl.textContent = d.executionPlan.riskRecommendation;
 
@@ -563,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dossierConfirmationsListEl.appendChild(item);
     });
 
-    dossierInvalidationTextEl.textContent = `Setup Invalidation Rule: A candle close beyond ${d.invalidationPrice.toFixed(pipDec)} completely invalidates this institutional premise. Target 1 (+${d.tp1Pips}p) captures 60% position profit, trailing remaining balance to breakeven for Target 2 (+${d.tp2Pips}p).`;
+    dossierInvalidationTextEl.textContent = `Setup Invalidation Rule: A candle close beyond ${d.invalidationPrice.toFixed(pipDec)} completely invalidates this institutional premise. TP1 (+${d.tp1Pips}p) takes 50% profit, TP2 (+${d.tp2Pips}p) takes 30% profit, and TP3 (+${d.tp3Pips}p) lets runners ride with stop moved to Breakeven.`;
 
     dossierModal.style.display = 'flex';
   }

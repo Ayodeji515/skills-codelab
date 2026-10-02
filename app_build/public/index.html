@@ -110,6 +110,10 @@
             <span style="color: var(--bull-primary);">SMC (OB/FVG)</span>
           </label>
           <label class="overlay-chip">
+            <input type="checkbox" class="overlay-toggle" data-overlay="liquidity" checked>
+            <span style="color: var(--cyan-primary);">Liquidity (Sweeps/EQ)</span>
+          </label>
+          <label class="overlay-chip">
             <input type="checkbox" class="overlay-toggle" data-overlay="ema9" checked>
             <span style="color: var(--cyan-primary);">EMA 9</span>
           </label>
@@ -205,7 +209,7 @@
           </div>
           <div class="target-tile">
             <span class="tile-label">Risk:Reward</span>
-            <div class="tile-value bull-text" id="sig-rrr">1 : 2.5</div>
+            <div class="tile-value bull-text" id="sig-rrr">1 : 2.8</div>
           </div>
           <div class="target-tile">
             <span class="tile-label">Target 1 (Primary)</span>
@@ -215,8 +219,16 @@
             <span class="tile-label">Target 2 (Runner)</span>
             <div class="tile-value bull-text" id="sig-tp2">1.08950 (+50p)</div>
           </div>
+          <div class="target-tile">
+            <span class="tile-label">Target 3 (Swing Max)</span>
+            <div class="tile-value" style="color: var(--cyan-primary);" id="sig-tp3">1.09250 (+80p)</div>
+          </div>
+          <div class="target-tile">
+            <span class="tile-label">Position Lot Size</span>
+            <div class="tile-value" style="color: var(--gold-primary);" id="sig-lots">0.15 Lots</div>
+          </div>
           <div class="target-tile" style="grid-column: span 2;">
-            <span class="tile-label">Invalidation Stop Loss (ATR / OB)</span>
+            <span class="tile-label">Invalidation Stop Loss (Structural OB/ATR)</span>
             <div class="tile-value bear-text" id="sig-sl">1.08330 (-12p)</div>
           </div>
         </div>
@@ -317,12 +329,20 @@
               <strong class="d-spec-val bull-text" id="d-tp2">1.08950 (+50 pips)</strong>
             </div>
             <div class="d-spec-cell">
-              <span class="d-spec-lbl">Risk:Reward</span>
-              <strong class="d-spec-val bull-text" id="d-rrr">1 : 2.5</strong>
+              <span class="d-spec-lbl">Target 3 (Swing Max)</span>
+              <strong class="d-spec-val" style="color: var(--cyan-primary);" id="d-tp3">1.09250 (+80 pips)</strong>
             </div>
             <div class="d-spec-cell">
-              <span class="d-spec-lbl">Position Risk Size</span>
-              <strong class="d-spec-val" id="d-risk">1.0% - 1.5% Equity</strong>
+              <span class="d-spec-lbl">Recommended Sizing</span>
+              <strong class="d-spec-val" style="color: var(--gold-primary);" id="d-lots">0.15 Lots ($100 Risk)</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Risk:Reward</span>
+              <strong class="d-spec-val bull-text" id="d-rrr">1 : 2.8</strong>
+            </div>
+            <div class="d-spec-cell">
+              <span class="d-spec-lbl">Position Risk Policy</span>
+              <strong class="d-spec-val" id="d-risk">1.0% Equity Baseline</strong>
             </div>
           </div>
         </div>

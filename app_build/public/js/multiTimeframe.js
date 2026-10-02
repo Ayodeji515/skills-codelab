@@ -29,8 +29,10 @@ const MultiTimeframeScanner = {
             lastPrice: candles[candles.length - 1].close,
             trend: smc.currentTrend,
             latestStructure: smc.latestStructure ? smc.latestStructure.type : 'Structure Valid',
+            latestSweep: smc.latestSweep ? smc.latestSweep.name : 'None',
             activeOBs: smc.activeOBs.length,
             activeFVGs: smc.activeFVGs.length,
+            liquidityPools: smc.liquidityPools ? smc.liquidityPools.length : 0,
             equilibrium: smc.equilibrium ? smc.equilibrium.zone.split(' ')[0] : 'Discount',
             signal: signal ? signal.action : 'BUY',
             confidence: signal ? signal.confidence : 92,
@@ -55,16 +57,47 @@ const MultiTimeframeScanner = {
   determineBestEntryTimeframe(mtfResults, pipDecimal = 4) {
     let macroBullScore = 0;
     let macroBearScore = 0;
+    let totalTimeframes = 0;
+    let alignedTimeframes = 0;
 
-    ['1d', '4h', '1h'].forEach(tf => {
+    const weights = {
+      '1d': 3,
+      '4h': 3,
+      '1h': 2,
+      '15m': 2,
+      '5m': 1,
+      '1m': 1
+    };
+
+    let totalWeight = 0;
+    let directionalWeight = 0;
+
+    Object.keys(weights).forEach(tf => {
       if (mtfResults[tf]) {
-        if (mtfResults[tf].signal === 'BUY') macroBullScore += 2;
-        if (mtfResults[tf].signal === 'SELL') macroBearScore += 2;
+        totalTimeframes++;
+        const weight = weights[tf];
+        totalWeight += weight;
+        if (mtfResults[tf].signal === 'BUY') {
+          macroBullScore += weight;
+          directionalWeight += weight;
+        } else if (mtfResults[tf].signal === 'SELL') {
+          macroBearScore += weight;
+          directionalWeight -= weight;
+        }
       }
     });
 
     const macroTrend = macroBullScore >= macroBearScore ? 'BULLISH' : 'BEARISH';
     const primaryAction = macroTrend === 'BULLISH' ? 'BUY' : 'SELL';
+
+    // Calculate alignment percentage
+    Object.keys(weights).forEach(tf => {
+      if (mtfResults[tf] && mtfResults[tf].signal === primaryAction) {
+        alignedTimeframes++;
+      }
+    });
+
+    const alignmentScore = totalTimeframes > 0 ? Math.round((alignedTimeframes / totalTimeframes) * 100) : 85;
 
     // Prioritize high-liquidity execution timeframe (15M or 5M)
     let bestTf = '15m';
@@ -79,12 +112,13 @@ const MultiTimeframeScanner = {
     const targetSignal = mtfResults[bestTf] ? mtfResults[bestTf].detailedSignal : null;
     const compositeScore = targetSignal ? targetSignal.confidence : 94;
 
-    const rationale = `${bestTf.toUpperCase()} exhibits maximum institutional confluence (${compositeScore}% Composite Score) aligning with the ${macroTrend} macro trend, confirmed by active Order Block retests and price action validation.`;
+    const rationale = `${bestTf.toUpperCase()} exhibits maximum institutional confluence (${compositeScore}% Composite Score, ${alignmentScore}% MTF Alignment) aligning with the ${macroTrend} macro trend, confirmed by active Order Block retests and price action validation.`;
 
     return {
       optimalTimeframe: bestTf,
       optimalAction: targetSignal ? targetSignal.action : primaryAction,
       macroTrend,
+      alignmentScore,
       compositeScore,
       rationale,
       targetSignal
